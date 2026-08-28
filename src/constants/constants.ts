@@ -4,6 +4,9 @@ export const OAV_EVENTS_URL = "https://www.oav.gr/";
 // Existing OAV Discord channel used for automatic join welcome messages.
 export const OAV_WELCOME_CHANNEL_ID = "1542153680940302378";
 
+// Existing OAV Discord category used for support ticket channels.
+export const OAV_TICKETS_CATEGORY_ID = "1542153680940302382";
+
 // Vatsim Data API
 export const VATSIM_DATA_API = "https://data.vatsim.net/v3/vatsim-data.json";
 

@@ -10,6 +10,7 @@ export const envConfigSchema = z.object({
   GUILD_ID: z.string().min(1),
   EVENT_ORGANIZER_ROLE_ID: z.string().min(1),
   EVENT_ORGANIZER_PANEL_CHANNEL_ID: z.string().min(1),
+  TICKETS_SUPPORT_ROLE_ID: z.string().min(1),
 });
 
 export const aiportConfigSchema = z.object({
