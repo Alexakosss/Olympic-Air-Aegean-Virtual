@@ -2,7 +2,6 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   type Client,
-  EmbedBuilder,
   type Interaction,
   ButtonStyle,
   MessageFlags,
@@ -13,8 +12,7 @@ import type pino from "pino";
 import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
-import { OAV_LOGO_URL } from "@/constants/constants.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 import { formatStaffupPositions } from "@/utils/positions.utils.ts";
 import { gDuration, toDiscordDate } from "@/utils/time.utils.ts";
 
@@ -62,22 +60,18 @@ export class AcceptStaffupInteraction implements ModuleInteraction {
     );
 
     if (positionRegistered) {
-      const embed: EmbedBuilder = new EmbedBuilder()
+      const embed = newSimpleEmbed()
         .setTitle("Position already selected")
-        .setThumbnail(OAV_LOGO_URL)
         .setDescription(
           `<@${interaction.user.id}> you have already selected the \`${picked}\` position.`,
         )
-        .setColor("#dc2626")
-        .setFooter({
-          text: "Olympic Air Aegean Airlines Virtual",
-          iconURL: OAV_LOGO_URL,
-        })
-        .setTimestamp();
-      await interaction.reply({
-        embeds: [embed],
-        flags: [MessageFlags.Ephemeral],
-      });
+        .setColor("#dc2626");
+      await interaction.reply(
+        withOavLogo({
+          embeds: [embed],
+          flags: [MessageFlags.Ephemeral],
+        }),
+      );
       return;
     }
 
@@ -99,10 +93,12 @@ export class AcceptStaffupInteraction implements ModuleInteraction {
       )
       .setColor("#16a34a");
 
-    await interaction.user.send({
-      embeds: [embed],
-      components: [actionRow],
-    });
+    await interaction.user.send(
+      withOavLogo({
+        embeds: [embed],
+        components: [actionRow],
+      }),
+    );
 
     await interaction.reply({
       content: ":white_check_mark: Actions performed.",
@@ -162,12 +158,14 @@ export class AcceptStaffupInteraction implements ModuleInteraction {
     });
 
     if (staffupEntry.positions.length == staffupEntry.staffup.positions.length) {
-      await msg.edit({
-        embeds: [embedA],
-        content: ":white_check_mark: Staff-up positions filled",
-      });
+      await msg.edit(
+        withOavLogo({
+          embeds: [embedA],
+          content: ":white_check_mark: Staff-up positions filled",
+        }),
+      );
     } else {
-      await msg.edit({ embeds: [embedA] });
+      await msg.edit(withOavLogo({ embeds: [embedA] }));
     }
 
     if (staffupEntry.staffup.ownerMessageId) {
@@ -203,9 +201,11 @@ export class AcceptStaffupInteraction implements ModuleInteraction {
           },
         );
 
-      await ownerMsg.edit({
-        embeds: [ownerEmbed],
-      });
+      await ownerMsg.edit(
+        withOavLogo({
+          embeds: [ownerEmbed],
+        }),
+      );
     }
   }
 }

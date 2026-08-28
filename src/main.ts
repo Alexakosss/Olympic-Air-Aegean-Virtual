@@ -26,7 +26,7 @@ import { StaffupModule } from "@/modules/staffup/staffup.module.ts";
 import { VatsimService } from "@/service/vatsim.service.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { Command, Module, ModuleInteraction } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 
 import {
   type EnvConfig,
@@ -242,22 +242,24 @@ class Bot {
       }
 
       try {
-        await welcomeChannel.send({
-          content: `${member}`,
-          embeds: [
-            newSimpleEmbed()
-              .setTitle("Welcome to our Discord Server")
-              .setDescription(
-                [
-                  "Feel free to enroll yourself throughout the channels.",
-                  "We can't wait to meet you in our Voice channels, where we meet and discuss everything related to aviation.",
-                  "",
-                  `For any questions, check out our Operations Manual, open a Ticket, or visit our Official Site: ${OAV_WEBSITE_URL}`,
-                ].join("\n"),
-              )
-              .setColor("#2388c9"),
-          ],
-        });
+        await welcomeChannel.send(
+          withOavLogo({
+            content: `${member}`,
+            embeds: [
+              newSimpleEmbed()
+                .setTitle("Welcome to our Discord Server")
+                .setDescription(
+                  [
+                    "Feel free to enroll yourself throughout the channels.",
+                    "We can't wait to meet you in our Voice channels, where we meet and discuss everything related to aviation.",
+                    "",
+                    `For any questions, check out our Operations Manual, open a Ticket, or visit our Official Site: ${OAV_WEBSITE_URL}`,
+                  ].join("\n"),
+                )
+                .setColor("#2388c9"),
+            ],
+          }),
+        );
       } catch (error) {
         logger.error(`Failed to send welcome message in guild ${member.guild.id}, error: ${error}`);
       }

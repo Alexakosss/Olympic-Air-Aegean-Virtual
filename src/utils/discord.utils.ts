@@ -1,15 +1,43 @@
-import { EmbedBuilder, type GuildMember } from "discord.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { OAV_LOGO_URL } from "../constants/constants.ts";
+import {
+  AttachmentBuilder,
+  type BaseMessageOptions,
+  EmbedBuilder,
+  type GuildMember,
+} from "discord.js";
+
+import { OAV_WEBSITE_URL } from "../constants/constants.ts";
+
+const OAV_LOGO_PATH = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../assets/oav-logo.png",
+);
+
+export const OAV_LOGO_FILE_NAME = "oav-logo.png";
+export const OAV_LOGO_ATTACHMENT_URL = `attachment://${OAV_LOGO_FILE_NAME}`;
+
+export const createOavLogoFile = (): AttachmentBuilder =>
+  new AttachmentBuilder(OAV_LOGO_PATH, { name: OAV_LOGO_FILE_NAME });
+
+export const withOavLogo = <T extends BaseMessageOptions>(options: T): T => ({
+  ...options,
+  files: [createOavLogoFile(), ...(options.files ?? [])],
+});
 
 export const newSimpleEmbed = (): EmbedBuilder => {
   return new EmbedBuilder()
-    .setTitle("Olympic Air Aegean Airlines Virtual")
-    .setThumbnail(OAV_LOGO_URL)
-    .setColor("#3b82f6")
+    .setAuthor({
+      name: "Olympic Air Aegean Airlines Virtual",
+      iconURL: OAV_LOGO_ATTACHMENT_URL,
+      url: OAV_WEBSITE_URL,
+    })
+    .setThumbnail(OAV_LOGO_ATTACHMENT_URL)
+    .setColor("#003087")
     .setFooter({
       text: "Olympic Air Aegean Airlines Virtual",
-      iconURL: OAV_LOGO_URL,
+      iconURL: OAV_LOGO_ATTACHMENT_URL,
     })
     .setTimestamp();
 };

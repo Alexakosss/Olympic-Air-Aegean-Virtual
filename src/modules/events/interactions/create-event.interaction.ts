@@ -20,7 +20,7 @@ import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { GeneralEvent } from "@/schemas/events.schema.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 
 import { OAV_EVENTS_CHANNEL_ID } from "../event.constants.ts";
 import { buildGeneralEventEmbed, createGeneralEventReminderRow } from "../utils/display.utils.ts";
@@ -249,10 +249,12 @@ export class CreateEventInteraction implements ModuleInteraction {
     };
     const uuid = await this.dataService.createGeneralEvent(event);
     try {
-      const announcement = await eventChannel.send({
-        embeds: [buildGeneralEventEmbed(event)],
-        components: [createGeneralEventReminderRow(uuid)],
-      });
+      const announcement = await eventChannel.send(
+        withOavLogo({
+          embeds: [buildGeneralEventEmbed(event)],
+          components: [createGeneralEventReminderRow(uuid)],
+        }),
+      );
       await this.dataService.updateGeneralEvent(uuid, { messageId: announcement.id });
     } catch (error) {
       await this.dataService.deleteGeneralEvent(uuid);
@@ -264,17 +266,19 @@ export class CreateEventInteraction implements ModuleInteraction {
       this.envCfg.EVENT_ORGANIZER_PANEL_CHANNEL_ID,
     );
     if (panelChannel?.isSendable()) {
-      await panelChannel.send({
-        content: `<@&${this.envCfg.EVENT_ORGANIZER_ROLE_ID}>`,
-        embeds: [
-          newSimpleEmbed()
-            .setTitle("New event created")
-            .setDescription(
-              `**${title}** was created by ${interaction.user}.\nPosted in: <#${eventChannel.id}>`,
-            )
-            .setColor("#16a34a"),
-        ],
-      });
+      await panelChannel.send(
+        withOavLogo({
+          content: `<@&${this.envCfg.EVENT_ORGANIZER_ROLE_ID}>`,
+          embeds: [
+            newSimpleEmbed()
+              .setTitle("New event created")
+              .setDescription(
+                `**${title}** was created by ${interaction.user}.\nPosted in: <#${eventChannel.id}>`,
+              )
+              .setColor("#16a34a"),
+          ],
+        }),
+      );
     }
 
     await interaction.reply({

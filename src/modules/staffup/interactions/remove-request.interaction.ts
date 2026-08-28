@@ -4,7 +4,7 @@ import type { Logger } from "pino";
 import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 import { formatStaffupPositions } from "@/utils/positions.utils.ts";
 import { toDiscordDate, gDuration } from "@/utils/time.utils.ts";
 
@@ -115,18 +115,22 @@ export class RemoveRequestInteraction implements ModuleInteraction {
       inline: false,
     });
     if (staffUpEntry.positions.length == staffUpEntry?.staffup.positions.length) {
-      await msg.edit({
-        embeds: [embedA],
-        content: ":white_check_mark: Staff-up positions filled",
-      });
+      await msg.edit(
+        withOavLogo({
+          embeds: [embedA],
+          content: ":white_check_mark: Staff-up positions filled",
+        }),
+      );
     } else {
-      await msg.edit({ embeds: [embedA] });
+      await msg.edit(withOavLogo({ embeds: [embedA] }));
     }
 
     try {
-      await interaction.user.send({
-        embeds: [userEmbed],
-      });
+      await interaction.user.send(
+        withOavLogo({
+          embeds: [userEmbed],
+        }),
+      );
     } catch {}
 
     if (staffUpEntry.staffup.ownerMessageId) {
@@ -162,9 +166,11 @@ export class RemoveRequestInteraction implements ModuleInteraction {
           },
         );
 
-      await ownerMsg.edit({
-        embeds: [ownerEmbed],
-      });
+      await ownerMsg.edit(
+        withOavLogo({
+          embeds: [ownerEmbed],
+        }),
+      );
     }
 
     await interaction.deleteReply();

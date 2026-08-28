@@ -6,7 +6,7 @@ import {
 
 import { type Event } from "@/schemas/events.schema.ts";
 import type { Command, CommandMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 import { gDuration, unix } from "@/utils/time.utils.ts";
 
 export class SendEventsCommand implements Command {
@@ -85,6 +85,6 @@ export class SendEventsCommand implements Command {
 
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(event);
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    await interaction.reply(withOavLogo({ embeds: [embed], components: [row] }));
   }
 }

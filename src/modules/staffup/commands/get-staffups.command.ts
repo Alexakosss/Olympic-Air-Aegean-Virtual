@@ -2,7 +2,7 @@ import { type ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 
 import type { DataService } from "@/types/data.types.ts";
 import type { Command, CommandMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 import { formatStaffupPositions } from "@/utils/positions.utils.ts";
 import { toDiscordDate } from "@/utils/time.utils.ts";
 
@@ -58,6 +58,6 @@ export class GetStaffupsCommand implements Command {
       embeds.push(embed);
     }
 
-    await interaction.reply({ embeds });
+    await interaction.reply(withOavLogo({ embeds }));
   }
 }

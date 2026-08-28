@@ -2,6 +2,7 @@ import { type Client, Events, type Interaction, MessageFlags } from "discord.js"
 
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
+import { withOavLogo } from "@/utils/discord.utils.ts";
 
 import { buildGeneralEventReminderEmbed } from "../utils/display.utils.ts";
 
@@ -35,7 +36,9 @@ export class GeneralEventReminderInteraction implements ModuleInteraction {
     if (!event) return;
 
     try {
-      await interaction.user.send({ embeds: [buildGeneralEventReminderEmbed(event)] });
+      await interaction.user.send(
+        withOavLogo({ embeds: [buildGeneralEventReminderEmbed(event)] }),
+      );
       await interaction.editReply(
         ":white_check_mark: Reminder saved. I sent the event preview to your direct messages.",
       );
@@ -79,19 +82,21 @@ export class GeneralEventReminderMonitor implements ModuleInteraction {
           event.reminderUserIds.map(async (userId) => {
             try {
               const user = await this.client.users.fetch(userId);
-              await user.send({
-                embeds: [
-                  buildGeneralEventReminderEmbed(event)
-                    .setTitle(`🔔 Event reminder — ${event.title}`)
-                    .setDescription(
-                      [
-                        "Your event begins in approximately one hour.",
-                        "",
-                        "**For more information, please visit [Olympic Air Aegean Airlines Virtual](https://www.oav.gr/).**",
-                      ].join("\n"),
-                    ),
-                ],
-              });
+              await user.send(
+                withOavLogo({
+                  embeds: [
+                    buildGeneralEventReminderEmbed(event)
+                      .setTitle(`🔔 Event reminder — ${event.title}`)
+                      .setDescription(
+                        [
+                          "Your event begins in approximately one hour.",
+                          "",
+                          "**For more information, please visit [Olympic Air Aegean Airlines Virtual](https://www.oav.gr/).**",
+                        ].join("\n"),
+                      ),
+                  ],
+                }),
+              );
             } catch {
               // A blocked DM should not stop reminders for the other interested users.
             }

@@ -14,6 +14,8 @@ import type { GeneralEvent } from "@/schemas/events.schema.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
 
+import { withOavLogo } from "@/utils/discord.utils.ts";
+
 import { buildGeneralEventEmbed, createGeneralEventReminderRow } from "../utils/display.utils.ts";
 
 export class ManageEventInteraction implements ModuleInteraction {
@@ -122,10 +124,12 @@ export class ManageEventInteraction implements ModuleInteraction {
     if (channel?.isTextBased())
       await (
         await channel.messages.fetch(updated.messageId)
-      ).edit({
-        embeds: [buildGeneralEventEmbed(updated)],
-        components: [createGeneralEventReminderRow(uuid)],
-      });
+      ).edit(
+        withOavLogo({
+          embeds: [buildGeneralEventEmbed(updated)],
+          components: [createGeneralEventReminderRow(uuid)],
+        }),
+      );
     await interaction.reply({
       content: ":white_check_mark: Event details updated.",
       flags: MessageFlags.Ephemeral,

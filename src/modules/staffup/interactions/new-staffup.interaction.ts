@@ -12,7 +12,7 @@ import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { StaffUp } from "@/schemas/staffup.schema.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
-import { newSimpleEmbed } from "@/utils/discord.utils.ts";
+import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 import { gDuration, toDiscordDate } from "@/utils/time.utils.ts";
 
 export class NewStaffupInteraction implements ModuleInteraction {
@@ -169,10 +169,12 @@ export class NewStaffupInteraction implements ModuleInteraction {
       const uuid = await this.dataService.createStaffUp(staffup);
       const actionRow = this.createActionRow(positions, uuid);
 
-      const msg = await channel.send({
-        embeds: [embed],
-        components: [actionRow],
-      });
+      const msg = await channel.send(
+        withOavLogo({
+          embeds: [embed],
+          components: [actionRow],
+        }),
+      );
 
       await interaction.reply({
         content: ":white_check_mark: Staffup event created! View it here: " + msg.url,
@@ -199,9 +201,11 @@ export class NewStaffupInteraction implements ModuleInteraction {
           },
         );
 
-      const dm = await interaction.user.send({
-        embeds: [userEmbed],
-      });
+      const dm = await interaction.user.send(
+        withOavLogo({
+          embeds: [userEmbed],
+        }),
+      );
 
       await this.dataService.updateStaffUp(uuid, {
         ownerMessageId: dm.id,
