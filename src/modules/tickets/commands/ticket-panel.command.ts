@@ -10,6 +10,7 @@ import {
   StringSelectMenuOptionBuilder,
 } from "discord.js";
 
+import { ticketCategories } from "@/modules/tickets/ticket.constants.ts";
 import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { Command, CommandMeta } from "@/types/module.types.ts";
 import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
@@ -62,33 +63,41 @@ export class TicketPanelCommand implements Command {
     }
 
     const embed: EmbedBuilder = newSimpleEmbed()
-      .setTitle("OAV Support")
+      .setTitle("🎫 OAV Support")
       .setDescription(
         [
-          "If you wish to submit a request or have any questions, you may use this ticket tool.",
-          "It is simple, fast, and efficient for us.",
+          "👋 Welcome! If you wish to submit a request or have any questions, you may use this ticket tool.",
+          "✨ It is simple, fast, and efficient for us.",
           "",
-          "For general information, visit [Olympic Air Aegean Airlines Virtual](https://www.oav.gr/).",
+          "📋 **How it works**",
+          "1️⃣ Select a category below",
+          "2️⃣ Tell us how we can help",
+          "3️⃣ Our team will join you in your private ticket",
+          "",
+          "🌐 For general information, visit [Olympic Air Aegean Airlines Virtual](https://www.oav.gr/).",
         ].join("\n"),
       )
       .setColor("#003087");
 
     const categoryMenu = new StringSelectMenuBuilder()
       .setCustomId("ticket-category")
-      .setPlaceholder("Select a support category")
+      .setPlaceholder("🎫 Select a support category")
       .addOptions(
         new StringSelectMenuOptionBuilder()
-          .setLabel("General Support")
-          .setDescription("General questions and requests.")
-          .setValue("general"),
+          .setLabel(ticketCategories.general.label)
+          .setDescription(ticketCategories.general.description)
+          .setValue("general")
+          .setEmoji(ticketCategories.general.emoji),
         new StringSelectMenuOptionBuilder()
-          .setLabel("Report a member")
-          .setDescription("Please provide any media file/link needed for this report.")
-          .setValue("report"),
+          .setLabel(ticketCategories.report.label)
+          .setDescription(ticketCategories.report.description)
+          .setValue("report")
+          .setEmoji(ticketCategories.report.emoji),
         new StringSelectMenuOptionBuilder()
-          .setLabel("Technical Support")
-          .setDescription("Website, Discord, or technical issues.")
-          .setValue("technical"),
+          .setLabel(ticketCategories.technical.label)
+          .setDescription(ticketCategories.technical.description)
+          .setValue("technical")
+          .setEmoji(ticketCategories.technical.emoji),
       );
 
     await channel.send(

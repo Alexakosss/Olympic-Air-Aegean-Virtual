@@ -14,20 +14,17 @@ import {
 } from "discord.js";
 
 import { OAV_TICKETS_CATEGORY_ID } from "@/constants/constants.ts";
+import {
+  type TicketCategory,
+  ticketCategories,
+  withTicketEmoji,
+} from "@/modules/tickets/ticket.constants.ts";
 import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
 import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 
-const ticketCategories = {
-  general: "General Support",
-  report: "Report a member",
-  technical: "Technical Support",
-} as const;
-
-type TicketCategory = keyof typeof ticketCategories;
-
 const reportNotice =
-  "Please provide any media file or link needed for this report.";
+  "❗ Please provide any media file or link needed for this report.";
 
 export class NewTicketInteraction implements ModuleInteraction {
   constructor(private readonly envCfg: EnvConfig) {}
@@ -73,10 +70,10 @@ export class NewTicketInteraction implements ModuleInteraction {
 
     const modal = new ModalBuilder()
       .setCustomId(`ticket-notes:${category}`)
-      .setTitle(`${ticketCategories[category]} Ticket`)
+      .setTitle(withTicketEmoji(category, `${ticketCategories[category].label} Ticket`))
       .addLabelComponents(
         new LabelBuilder()
-          .setLabel(category === "report" ? "Report details" : "Details")
+          .setLabel(category === "report" ? "❗ Report details" : "📝 Details")
           .setDescription(
             category === "report"
               ? "Please provide any media file/link needed for this report."
@@ -138,30 +135,39 @@ export class NewTicketInteraction implements ModuleInteraction {
       return;
     }
 
+    const categoryMeta = ticketCategories[category];
     const embed = newSimpleEmbed()
-      .setTitle(ticketCategories[category])
-      .setDescription(`Ticket opened by ${interaction.user}.`)
-      .addFields({ name: "Details", value: notes, inline: false })
+      .setTitle(withTicketEmoji(category, categoryMeta.label))
+      .setDescription(
+        [
+          `👋 Welcome ${interaction.user}!`,
+          "",
+          "🎫 Thank you for opening a ticket. A member of our support team will be with you shortly.",
+          "✨ Please add any extra details, screenshots, or links below.",
+        ].join("\n"),
+      )
+      .addFields({ name: "📝 Details", value: notes, inline: false })
       .setColor("#003087");
 
     if (category === "report") {
-      embed.addFields({ name: "Important notice", value: reportNotice, inline: false });
+      embed.addFields({ name: "❗ Important notice", value: reportNotice, inline: false });
     }
 
     const cancelButton = new ButtonBuilder()
       .setCustomId(`ticket-cancel:${interaction.user.id}`)
       .setLabel("Cancel Ticket")
+      .setEmoji("🗑️")
       .setStyle(ButtonStyle.Danger);
 
     await ticketChannel.send(
       withOavLogo({
-        content: `${interaction.user} <@&${this.envCfg.TICKETS_SUPPORT_ROLE_ID}>`,
+        content: `👋 ${interaction.user} 🛎️ <@&${this.envCfg.TICKETS_SUPPORT_ROLE_ID}>`,
         embeds: [embed],
         components: [new ActionRowBuilder<ButtonBuilder>().addComponents(cancelButton)],
       }),
     );
     await interaction.reply({
-      content: `:white_check_mark: Your ticket has been created: ${ticketChannel}`,
+      content: `:white_check_mark: 🎫 Your ticket has been created: ${ticketChannel}`,
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -190,7 +196,7 @@ export class NewTicketInteraction implements ModuleInteraction {
     }
 
     await interaction.reply({
-      content: `:wastebasket: Ticket cancelled by ${interaction.user}. This channel will be deleted.`,
+      content: `🗑️ Ticket cancelled by ${interaction.user}. This channel will be deleted.`,
     });
 
     try {
