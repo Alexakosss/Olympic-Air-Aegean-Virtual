@@ -212,25 +212,47 @@ export class CreateEventInteraction implements ModuleInteraction {
       });
       return;
     }
+    if (start.getTime() <= Date.now()) {
+      await interaction.reply({
+        content:
+          ":x: Discord cannot create a scheduled event in the past. Choose a start time later than now (Z).",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     const title = draft.title;
     const description = interaction.fields.getTextInputValue("event-description");
     const routes = interaction.fields.getTextInputValue("event-routes");
     const imageUrl = interaction.fields.getUploadedFiles("event-image")?.first()?.url;
-    const scheduledEvent = await interaction.guild.scheduledEvents.create({
-      name: title.slice(0, 100),
-      description: description.slice(0, 1_000),
-      scheduledStartTime: start,
-      scheduledEndTime: end,
-      privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
-      entityType: GuildScheduledEventEntityType.External,
-      entityMetadata: { location: "VATSIM" },
-    });
+    let scheduledEvent;
+    try {
+      scheduledEvent = await interaction.guild.scheduledEvents.create({
+        name: title.slice(0, 100),
+        description: description.slice(0, 1_000),
+        scheduledStartTime: start,
+        scheduledEndTime: end,
+        privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
+        entityType: GuildScheduledEventEntityType.External,
+        entityMetadata: { location: "VATSIM" },
+      });
+    } catch {
+      await interaction.reply({
+        content:
+          ":x: Discord rejected that schedule. Make sure the start and end are in the future (Z) and try again.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     const eventChannel = await this.client.channels.fetch(OAV_EVENTS_CHANNEL_ID);
     if (!eventChannel?.isSendable()) {
       await scheduledEvent.delete();
-      throw new Error(`OAV events channel ${OAV_EVENTS_CHANNEL_ID} is unavailable or cannot receive messages.`);
+      await interaction.reply({
+        content: ":x: The events channel is unavailable. The Discord scheduled event was cancelled.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
     }
 
     const event: GeneralEvent = {
@@ -256,10 +278,14 @@ export class CreateEventInteraction implements ModuleInteraction {
         }),
       );
       await this.dataService.updateGeneralEvent(uuid, { messageId: announcement.id });
-    } catch (error) {
+    } catch {
       await this.dataService.deleteGeneralEvent(uuid);
       await scheduledEvent.delete();
-      throw error;
+      await interaction.reply({
+        content: ":x: The event could not be posted in the events channel. Please try again.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
     }
 
     const panelChannel = await this.client.channels.fetch(

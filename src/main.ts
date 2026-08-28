@@ -104,16 +104,25 @@ class Bot {
     moduleInteractions: ModuleInteraction[],
   ) {
     const client: Client = this.container.get(SYMBOLS.Client);
+    const logger: Logger = this.container.get(SYMBOLS.Logger);
     for (const mi of moduleInteractions) {
       const meta = mi.meta();
       if (typeof meta.once !== "undefined" && meta.once) {
         client.once(event, async (...args: ClientEvents[E]) => {
-          await mi.handle(...args);
+          try {
+            await mi.handle(...args);
+          } catch (error) {
+            logger.error({ error }, `Unhandled error in ${String(event)} handler`);
+          }
         });
         continue;
       }
       client.on(event, async (...args: ClientEvents[E]) => {
-        await mi.handle(...args);
+        try {
+          await mi.handle(...args);
+        } catch (error) {
+          logger.error({ error }, `Unhandled error in ${String(event)} handler`);
+        }
       });
     }
   }

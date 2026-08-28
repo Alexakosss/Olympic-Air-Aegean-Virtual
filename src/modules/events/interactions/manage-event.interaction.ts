@@ -106,13 +106,37 @@ export class ManageEventInteraction implements ModuleInteraction {
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     };
-    if (current.scheduledEventId && interaction.guild) {
-      await interaction.guild.scheduledEvents.edit(current.scheduledEventId, {
-        name: update.title.slice(0, 100),
-        description: update.description.slice(0, 1_000),
-        scheduledStartTime: update.startTime,
-        scheduledEndTime: update.endTime,
+    if (update.endTime <= update.startTime) {
+      await interaction.reply({
+        content: ":x: The end time must be after the start time.",
+        flags: MessageFlags.Ephemeral,
       });
+      return;
+    }
+    if (update.startTime.getTime() <= Date.now()) {
+      await interaction.reply({
+        content:
+          ":x: Discord cannot schedule an event in the past. Choose a start time later than now (Z).",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    if (current.scheduledEventId && interaction.guild) {
+      try {
+        await interaction.guild.scheduledEvents.edit(current.scheduledEventId, {
+          name: update.title.slice(0, 100),
+          description: update.description.slice(0, 1_000),
+          scheduledStartTime: update.startTime,
+          scheduledEndTime: update.endTime,
+        });
+      } catch {
+        await interaction.reply({
+          content:
+            ":x: Discord rejected that schedule. Make sure the start and end are in the future (Z) and try again.",
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
     }
     const updated = await this.dataService.updateGeneralEvent(uuid, {
       ...update,
