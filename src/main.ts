@@ -22,7 +22,6 @@ import { OAV_WELCOME_CHANNEL_ID, OAV_WEBSITE_URL, SYMBOLS } from "@/constants/co
 import { CallsignModule } from "@/modules/callsign/callsign.module.ts";
 import { DevelopmentModule } from "@/modules/development/development.module.ts";
 import { EventsModule } from "@/modules/events/events.module.ts";
-import { StaffupModule } from "@/modules/staffup/staffup.module.ts";
 import { TicketsModule } from "@/modules/tickets/tickets.module.ts";
 import { VatsimService } from "@/service/vatsim.service.ts";
 import type { DataService } from "@/types/data.types.ts";
@@ -39,13 +38,7 @@ import { JSONStoreService } from "./service/json-store.service.ts";
 
 type ModuleClass = new (...args: any[]) => Module;
 
-const MODULES: ModuleClass[] = [
-  DevelopmentModule,
-  EventsModule,
-  StaffupModule,
-  TicketsModule,
-  CallsignModule,
-];
+const MODULES: ModuleClass[] = [DevelopmentModule, EventsModule, TicketsModule, CallsignModule];
 
 function createAllowedPositionsMap(positionsCfg: PositionsConfig): Map<string, void> {
   const allowedPositions: Map<string, void> = new Map();

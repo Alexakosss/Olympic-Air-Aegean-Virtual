@@ -1,6 +1,6 @@
 # Olympic Air Aegean Airlines Virtual Event Bot
 
-Discord bot for OAV event management, event reminders, staff-up requests, and VATSIM callsign updates.
+Discord bot for OAV event management, event reminders, tickets, and VATSIM callsign updates.
 
 ## Setup
 

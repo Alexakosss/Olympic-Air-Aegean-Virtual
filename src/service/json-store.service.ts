@@ -15,16 +15,9 @@ import {
   type Event,
   type GeneralEvent,
 } from "../schemas/events.schema.ts";
-import {
-  type StaffUp,
-  type StaffUpEntry,
-  staffupEntrySchema,
-  type StaffUpPosition,
-} from "../schemas/staffup.schema.ts";
 import type { DataService } from "../types/data.types.ts";
 
 const jsonStoreSchema = z.object({
-  staffups: z.record(z.string(), staffupEntrySchema),
   events: z.record(z.string(), eventEntrySchema),
   generalEvents: z.record(z.string(), generalEventSchema).default({}),
   names: z.record(z.string(), z.string()),
@@ -47,7 +40,6 @@ export class JSONStoreService implements DataService {
     return {
       events: {},
       generalEvents: {},
-      staffups: {},
       names: {},
     };
   }
@@ -76,7 +68,11 @@ export class JSONStoreService implements DataService {
     });
 
     try {
-      return await jsonStoreSchema.parseAsync(JSON.parse(contents));
+      const parsed: unknown = JSON.parse(contents);
+      if (parsed && typeof parsed === "object" && "staffups" in parsed) {
+        delete (parsed as { staffups?: unknown }).staffups;
+      }
+      return await jsonStoreSchema.parseAsync(parsed);
     } catch {
       return this.initSchema();
     }
@@ -87,17 +83,6 @@ export class JSONStoreService implements DataService {
     await fs.writeFile(this.envConfig.JSON_STORE_PATH, JSON.stringify(store, null, 2), {
       encoding: "utf8",
     });
-  }
-
-  public async getStaffUps(): Promise<StaffUpEntry[]> {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-      return Object.values(store.staffups);
-    } finally {
-      release();
-    }
   }
 
   public async createGeneralEvent(event: GeneralEvent): Promise<string> {
@@ -190,103 +175,6 @@ export class JSONStoreService implements DataService {
       const store = await this.storeRead();
       if (!store.generalEvents[uuid]) return;
       delete store.generalEvents[uuid];
-      await this.storeWrite(store);
-    } finally {
-      release();
-    }
-  }
-
-  public async createStaffUp(staffup: StaffUp) {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-
-      const uuid = uuidv4();
-
-      store.staffups[uuid] = {
-        staffup,
-        positions: [],
-      };
-
-      await this.storeWrite(store);
-      return uuid;
-    } finally {
-      release();
-    }
-  }
-
-  public async createEvent(event: Event, staffupUUID: string) {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-
-      const uuid = uuidv4();
-
-      store.events[uuid] = {
-        event,
-        staffupUUID,
-      };
-
-      await this.storeWrite(store);
-      return uuid;
-    } finally {
-      release();
-    }
-  }
-
-  public async getStaffUpByUUID(uuid: string): Promise<StaffUpEntry | undefined> {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-      return store.staffups[uuid];
-    } finally {
-      release();
-    }
-  }
-
-  public async updateStaffUpPositions(
-    uuid: string,
-    positions: StaffUpPosition[],
-  ): Promise<StaffUpEntry> {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-      const staffUpEntry = store.staffups[uuid];
-
-      if (!staffUpEntry) {
-        throw new Error(`Staffup ${uuid} not found.`);
-      }
-
-      staffUpEntry.positions = positions;
-
-      await this.storeWrite(store);
-
-      return staffUpEntry;
-    } finally {
-      release();
-    }
-  }
-
-  public async updateStaffUp(uuid: string, staffUp: Partial<StaffUp>): Promise<void> {
-    const release = await this.mu.obtainRW();
-
-    try {
-      const store = await this.storeRead();
-      const staffUpEntry = store.staffups[uuid];
-
-      if (!staffUpEntry) {
-        throw new Error(`Staffup ${uuid} not found.`);
-      }
-
-      staffUpEntry.staffup = {
-        ...staffUpEntry.staffup,
-        ...staffUp,
-      };
-
       await this.storeWrite(store);
     } finally {
       release();

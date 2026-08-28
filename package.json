@@ -1,7 +1,7 @@
 {
   "name": "oav-event-bot",
   "version": "1.0.0",
-  "description": "Discord event and staff-up bot for Olympic Air Aegean Airlines Virtual.",
+  "description": "Discord event and tickets bot for Olympic Air Aegean Airlines Virtual.",
   "keywords": ["oav", "olympic-air", "aegean", "vatsim", "discord-bot"],
   "license": "ISC",
   "author": "Olympic Air Aegean Airlines Virtual",
