@@ -8,7 +8,6 @@ export const envConfigSchema = z.object({
   STAFFUP_CHANNEL_ID: z.string().min(1),
   EVENTS_APPROVAL_CHANNEL_ID: z.string().min(1),
   GUILD_ID: z.string().min(1),
-  GENERAL_EVENTS_CATEGORY_ID: z.string().min(1),
   EVENT_ORGANIZER_ROLE_ID: z.string().min(1),
   EVENT_ORGANIZER_PANEL_CHANNEL_ID: z.string().min(1),
 });

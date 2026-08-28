@@ -2,7 +2,6 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ChannelType,
   type Client,
   Events,
   FileUploadBuilder,
@@ -23,6 +22,7 @@ import type { DataService } from "@/types/data.types.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
 import { newSimpleEmbed } from "@/utils/discord.utils.ts";
 
+import { OAV_EVENTS_CHANNEL_ID } from "../event.constants.ts";
 import { buildGeneralEventEmbed, createGeneralEventReminderRow } from "../utils/display.utils.ts";
 
 type ScheduleDraft = {
@@ -71,14 +71,6 @@ export class CreateEventInteraction implements ModuleInteraction {
       "cache" in interaction.member.roles &&
       interaction.member.roles.cache.has(this.envCfg.EVENT_ORGANIZER_ROLE_ID),
     );
-  }
-
-  private eventChannelName(title: string): string {
-    return title
-      .toLowerCase()
-      .replaceAll(/[^a-z0-9]+/g, "-")
-      .replaceAll(/(^-|-$)/g, "")
-      .slice(0, 90);
   }
 
   private createDetailsModal(draft: ScheduleDraft): ModalBuilder {
@@ -235,16 +227,10 @@ export class CreateEventInteraction implements ModuleInteraction {
       entityMetadata: { location: "VATSIM" },
     });
 
-    let eventChannel;
-    try {
-      eventChannel = await interaction.guild.channels.create({
-        name: this.eventChannelName(title),
-        type: ChannelType.GuildText,
-        parent: this.envCfg.GENERAL_EVENTS_CATEGORY_ID,
-      });
-    } catch (error) {
+    const eventChannel = await this.client.channels.fetch(OAV_EVENTS_CHANNEL_ID);
+    if (!eventChannel?.isSendable()) {
       await scheduledEvent.delete();
-      throw error;
+      throw new Error(`OAV events channel ${OAV_EVENTS_CHANNEL_ID} is unavailable or cannot receive messages.`);
     }
 
     const event: GeneralEvent = {
@@ -271,7 +257,6 @@ export class CreateEventInteraction implements ModuleInteraction {
     } catch (error) {
       await this.dataService.deleteGeneralEvent(uuid);
       await scheduledEvent.delete();
-      await eventChannel.delete("Unable to publish event announcement");
       throw error;
     }
 
@@ -285,7 +270,7 @@ export class CreateEventInteraction implements ModuleInteraction {
           newSimpleEmbed()
             .setTitle("New event created")
             .setDescription(
-              `**${title}** was created by ${interaction.user}.\nPublic channel: ${eventChannel}`,
+              `**${title}** was created by ${interaction.user}.\nPosted in: <#${eventChannel.id}>`,
             )
             .setColor("#16a34a"),
         ],
@@ -293,7 +278,7 @@ export class CreateEventInteraction implements ModuleInteraction {
     }
 
     await interaction.reply({
-      content: `:white_check_mark: Event created: ${eventChannel}`,
+      content: `:white_check_mark: Event created and posted in <#${eventChannel.id}>.`,
       flags: MessageFlags.Ephemeral,
     });
   }

@@ -26,6 +26,7 @@ import { StaffupModule } from "@/modules/staffup/staffup.module.ts";
 import { VatsimService } from "@/service/vatsim.service.ts";
 import type { DataService } from "@/types/data.types.ts";
 import type { Command, Module, ModuleInteraction } from "@/types/module.types.ts";
+import { newSimpleEmbed } from "@/utils/discord.utils.ts";
 
 import {
   type EnvConfig,
@@ -226,6 +227,37 @@ class Bot {
             flags: MessageFlags.Ephemeral,
           });
         }
+      }
+    });
+
+    client.on(Events.GuildMemberAdd, async (member) => {
+      if (member.user.bot) return;
+
+      const welcomeChannel = member.guild.systemChannel;
+      if (!welcomeChannel?.isSendable()) {
+        logger.warn(`No sendable system channel is configured for guild ${member.guild.id}.`);
+        return;
+      }
+
+      try {
+        await welcomeChannel.send({
+          embeds: [
+            newSimpleEmbed()
+              .setTitle("Welcome to Olympic Air Aegean Airlines Virtual")
+              .setDescription(
+                [
+                  `Welcome to our Discord server, ${member}!`,
+                  "",
+                  "Feel free to enrol and explore our channels. We can't wait to meet you in our voice channels, where we discuss everything related to aviation.",
+                  "",
+                  "For any questions, check our Operations Manual, open a ticket, or visit our official site: https://www.oav.gr/",
+                ].join("\n"),
+              )
+              .setColor("#2388c9"),
+          ],
+        });
+      } catch (error) {
+        logger.error(`Failed to send welcome message in guild ${member.guild.id}, error: ${error}`);
       }
     });
   }
