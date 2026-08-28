@@ -18,7 +18,7 @@ import dotenv from "dotenv";
 import { Container } from "inversify";
 import pino, { type Logger } from "pino";
 
-import { SYMBOLS } from "@/constants/constants.ts";
+import { OAV_WELCOME_CHANNEL_ID, OAV_WEBSITE_URL, SYMBOLS } from "@/constants/constants.ts";
 import { CallsignModule } from "@/modules/callsign/callsign.module.ts";
 import { DevelopmentModule } from "@/modules/development/development.module.ts";
 import { EventsModule } from "@/modules/events/events.module.ts";
@@ -233,24 +233,26 @@ class Bot {
     client.on(Events.GuildMemberAdd, async (member) => {
       if (member.user.bot) return;
 
-      const welcomeChannel = member.guild.systemChannel;
+      const welcomeChannel = await member.guild.channels.fetch(OAV_WELCOME_CHANNEL_ID);
       if (!welcomeChannel?.isSendable()) {
-        logger.warn(`No sendable system channel is configured for guild ${member.guild.id}.`);
+        logger.warn(
+          `Welcome channel ${OAV_WELCOME_CHANNEL_ID} is unavailable or cannot receive messages in guild ${member.guild.id}.`,
+        );
         return;
       }
 
       try {
         await welcomeChannel.send({
+          content: `${member}`,
           embeds: [
             newSimpleEmbed()
-              .setTitle("Welcome to Olympic Air Aegean Airlines Virtual")
+              .setTitle("Welcome to our Discord Server")
               .setDescription(
                 [
-                  `Welcome to our Discord server, ${member}!`,
+                  "Feel free to enroll yourself throughout the channels.",
+                  "We can't wait to meet you in our Voice channels, where we meet and discuss everything related to aviation.",
                   "",
-                  "Feel free to enrol and explore our channels. We can't wait to meet you in our voice channels, where we discuss everything related to aviation.",
-                  "",
-                  "For any questions, check our Operations Manual, open a ticket, or visit our official site: https://www.oav.gr/",
+                  `For any questions, check out our Operations Manual, open a Ticket, or visit our Official Site: ${OAV_WEBSITE_URL}`,
                 ].join("\n"),
               )
               .setColor("#2388c9"),

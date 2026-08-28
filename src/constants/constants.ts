@@ -5,6 +5,9 @@ export const OAV_LOGO_URL =
 export const OAV_WEBSITE_URL = "https://www.oav.gr/";
 export const OAV_EVENTS_URL = "https://www.oav.gr/";
 
+// Existing OAV Discord channel used for automatic join welcome messages.
+export const OAV_WELCOME_CHANNEL_ID = "1542153680940302378";
+
 // Vatsim Data API
 export const VATSIM_DATA_API = "https://data.vatsim.net/v3/vatsim-data.json";
 

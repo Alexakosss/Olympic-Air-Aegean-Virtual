@@ -1,6 +1,5 @@
 import {
   type Client,
-  ChannelType,
   Events,
   type Interaction,
   LabelBuilder,
@@ -144,8 +143,8 @@ export class ManageEventInteraction implements ModuleInteraction {
       await guild.scheduledEvents.delete(event.scheduledEventId);
     }
     const channel = await this.client.channels.fetch(event.channelId);
-    if (channel?.type === ChannelType.GuildText) {
-      await channel.delete(`Event cancelled by ${userTag}`);
+    if (channel?.isTextBased() && event.messageId && event.messageId !== "pending") {
+      await channel.messages.delete(event.messageId).catch(() => undefined);
     }
     await this.dataService.deleteGeneralEvent(uuid);
   }
