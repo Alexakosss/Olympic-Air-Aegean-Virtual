@@ -1,0 +1,14 @@
+# node modules
+/node_modules/
+
+# jetbrains
+/.idea/
+
+# env
+/.env
+
+# dist
+/dist
+
+# json store
+/store.json

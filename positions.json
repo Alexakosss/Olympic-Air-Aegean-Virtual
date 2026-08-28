@@ -1,0 +1,17 @@
+{
+  "airports": [
+    {
+      "icao": "LGAV",
+      "positions": ["DEL", "GND", "TWR", "APP"]
+    },
+    {
+      "icao": "LGIR",
+      "positions": ["DEL", "GND", "TWR", "APP"]
+    }
+  ],
+  "radar": [
+    {
+      "name": "LGGG_CTR"
+    }
+  ]
+}
