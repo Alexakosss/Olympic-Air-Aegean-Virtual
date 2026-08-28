@@ -197,8 +197,8 @@ class Bot {
       }
 
       if (client.user) {
-        if (client.user.username !== "OAV Events") {
-          await client.user.setUsername("OAV Events");
+        if (client.user.username !== "Olympic Air & Aegean Airlines VA") {
+          await client.user.setUsername("Olympic Air & Aegean Airlines VA");
         }
         client.user.setActivity({
           name: "Organizing some events",

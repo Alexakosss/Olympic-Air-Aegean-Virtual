@@ -1,4 +1,7 @@
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChannelType,
   Events,
   type Interaction,
@@ -10,21 +13,21 @@ import {
   TextInputStyle,
 } from "discord.js";
 
-import { OAV_TICKETS_CATEGORY_ID, OAV_WEBSITE_URL } from "@/constants/constants.ts";
+import { OAV_TICKETS_CATEGORY_ID } from "@/constants/constants.ts";
 import type { EnvConfig } from "@/schemas/config.schema.ts";
 import type { ModuleInteraction, ModuleInteractionMeta } from "@/types/module.types.ts";
 import { newSimpleEmbed, withOavLogo } from "@/utils/discord.utils.ts";
 
 const ticketCategories = {
   general: "General Support",
-  training: "Training Support",
+  report: "Report a member",
   technical: "Technical Support",
 } as const;
 
 type TicketCategory = keyof typeof ticketCategories;
 
-const trainingNotice =
-  `Any ticket asking to expedite a training request will be closed immediately. Visit ${OAV_WEBSITE_URL} for information before opening a ticket.`;
+const reportNotice =
+  "Please provide any media file or link needed for this report.";
 
 export class NewTicketInteraction implements ModuleInteraction {
   constructor(private readonly envCfg: EnvConfig) {}
@@ -39,6 +42,19 @@ export class NewTicketInteraction implements ModuleInteraction {
     return value in ticketCategories;
   }
 
+  private canManageTicket(interaction: Interaction, openerId: string): boolean {
+    if (!interaction.inGuild() || !interaction.member) return false;
+    if (interaction.user.id === openerId) return true;
+
+    const member = interaction.member;
+    if (!("permissions" in member) || typeof member.permissions === "string") return false;
+
+    return (
+      member.permissions.has(PermissionFlagsBits.ManageChannels) ||
+      ("cache" in member.roles && member.roles.cache.has(this.envCfg.TICKETS_SUPPORT_ROLE_ID))
+    );
+  }
+
   private async showNotesModal(interaction: Interaction): Promise<void> {
     if (!interaction.isStringSelectMenu() || interaction.customId !== "ticket-category") return;
 
@@ -50,8 +66,8 @@ export class NewTicketInteraction implements ModuleInteraction {
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true)
       .setPlaceholder(
-        category === "training"
-          ? "Describe your question. Do not request expedited training."
+        category === "report"
+          ? "Describe the report and include any media file or link."
           : "Describe how we can help you.",
       );
 
@@ -60,10 +76,10 @@ export class NewTicketInteraction implements ModuleInteraction {
       .setTitle(`${ticketCategories[category]} Ticket`)
       .addLabelComponents(
         new LabelBuilder()
-          .setLabel(category === "training" ? "Training support details" : "Details")
+          .setLabel(category === "report" ? "Report details" : "Details")
           .setDescription(
-            category === "training"
-              ? `Training-expedite requests will be closed. See ${OAV_WEBSITE_URL} first.`
+            category === "report"
+              ? "Please provide any media file/link needed for this report."
               : "Please include the details needed to help you.",
           )
           .setTextInputComponent(notes),
@@ -128,14 +144,20 @@ export class NewTicketInteraction implements ModuleInteraction {
       .addFields({ name: "Details", value: notes, inline: false })
       .setColor("#003087");
 
-    if (category === "training") {
-      embed.addFields({ name: "Important notice", value: trainingNotice, inline: false });
+    if (category === "report") {
+      embed.addFields({ name: "Important notice", value: reportNotice, inline: false });
     }
+
+    const cancelButton = new ButtonBuilder()
+      .setCustomId(`ticket-cancel:${interaction.user.id}`)
+      .setLabel("Cancel Ticket")
+      .setStyle(ButtonStyle.Danger);
 
     await ticketChannel.send(
       withOavLogo({
         content: `${interaction.user} <@&${this.envCfg.TICKETS_SUPPORT_ROLE_ID}>`,
         embeds: [embed],
+        components: [new ActionRowBuilder<ButtonBuilder>().addComponents(cancelButton)],
       }),
     );
     await interaction.reply({
@@ -144,8 +166,46 @@ export class NewTicketInteraction implements ModuleInteraction {
     });
   }
 
+  private async cancelTicket(interaction: Interaction): Promise<void> {
+    if (!interaction.isButton() || !interaction.customId.startsWith("ticket-cancel:")) return;
+
+    const [, openerId] = interaction.customId.split(":");
+    if (!openerId) return;
+
+    if (!this.canManageTicket(interaction, openerId)) {
+      await interaction.reply({
+        content: ":x: Only the ticket opener or support staff can cancel this ticket.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const channel = interaction.channel;
+    if (!channel || !channel.isTextBased() || channel.isDMBased()) {
+      await interaction.reply({
+        content: ":x: This ticket channel could not be found.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    await interaction.reply({
+      content: `:wastebasket: Ticket cancelled by ${interaction.user}. This channel will be deleted.`,
+    });
+
+    try {
+      await channel.delete("Ticket cancelled");
+    } catch {
+      await interaction.followUp({
+        content: ":x: I could not delete this ticket channel. Please make sure I can manage channels.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+  }
+
   public async handle(interaction: Interaction): Promise<void> {
     await this.showNotesModal(interaction);
     await this.createTicket(interaction);
+    await this.cancelTicket(interaction);
   }
 }

@@ -82,9 +82,9 @@ export class TicketPanelCommand implements Command {
           .setDescription("General questions and requests.")
           .setValue("general"),
         new StringSelectMenuOptionBuilder()
-          .setLabel("Training Support")
-          .setDescription("Questions about training and training applications.")
-          .setValue("training"),
+          .setLabel("Report a member")
+          .setDescription("Please provide any media file/link needed for this report.")
+          .setValue("report"),
         new StringSelectMenuOptionBuilder()
           .setLabel("Technical Support")
           .setDescription("Website, Discord, or technical issues.")
